@@ -11,8 +11,8 @@ export const getInventory = (lineId) =>
 /**
  * ✅ 更新用户库存
  */
-export const updateInventory = (lineId, payload) =>
-  axios.post(`/users/${encodeURIComponent(lineId)}/inventory`, payload);
+export const updateInventory = (payload) =>
+  axios.post(`/users/${encodeURIComponent(payload.user_id)}/inventory`, payload);
 
 /**
  * ✅ 提交必用食材（生成料理推荐）
