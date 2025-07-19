@@ -1,7 +1,7 @@
 import React from "react";
 
 export default function CookingTimePicker({ cookingTime, setCookingTime }) {
-  const times = Array.from({ length: 24 }, (_, i) => (i + 1) * 5); // 5‑120
+  const times = Array.from({ length: 12 }, (_, i) => (i + 1) * 5); // 5‑minute increments from 5 to 60
 
   return (
     <div className="flex flex-col gap-2">
