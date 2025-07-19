@@ -29,7 +29,7 @@ export default function RegisterPanel({
               : "bg-gray-300 text-white cursor-not-allowed"
           }`}
         >
-          登録する
+          保存する
         </Button>
       </div>
 

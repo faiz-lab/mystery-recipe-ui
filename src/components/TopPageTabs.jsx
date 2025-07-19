@@ -11,7 +11,7 @@ export default function TopPageTabs({ active, setActive }) {
         className={`${base} ${active === "register" ? activeClass : inactiveClass}`}
         onClick={() => setActive("register")}
       >
-        食材の登録
+        食材の保存
       </button>
       <button
         className={`${base} ${active === "select" ? activeClass : inactiveClass}`}

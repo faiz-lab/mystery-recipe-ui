@@ -8,7 +8,6 @@ import TopPageTabs from "@/components/TopPageTabs";
 import RegisterPanel from "@/components/RegisterPanel";
 import SelectPanel from "@/components/SelectPanel";
 import ToastMessage from "@/components/ToastMessage";
-import { Button } from "@/components/ui/button";
 
 import { INGREDIENTS } from "@/data/ingredients";
 
@@ -25,7 +24,7 @@ window.ING_MAP = ING_MAP;
 export default function MainPage() {
   const [isInfoVisible, setIsInfoVisible] = useState(false);
   const params = new URLSearchParams(window.location.search);
-  const userId = params.get("user_id");
+  const userId = params.get("user_id") || import.meta.env.VITE_DEFAULT_USER_ID;;
 
   const [page, setPage] = useState("register");
   const firstCat = Object.keys(CATEGORIES)[0] || "";
@@ -88,49 +87,56 @@ export default function MainPage() {
 
   const canCook = useMemo(() => Object.values(useMap).some(Boolean), [useMap]);
 
-  const handleSubmit = async () => {
+  const handleUpdate = async () => {
     if (page === "register") {
-      if (!canRegister || !userId) return;
-      const payload = {
-        user_id: userId,
-        items: [],
-      };
-      Object.entries(itemStates).forEach(([name, st]) => {
-        const ing = ING_MAP[name];
-        if (!ing) return;
-        if (ing.units?.length) {
-          const amount = Number(st?.count || 0);
-          if (amount > 0) {
-            payload.items.push({
-              name,
-              quantity,
-              unit: (st.unit || ing.standard_unit).trim(),
-            });
-          }
-        } else if (st?.checked) {
-          payload.items.push({ name, unit: "arb" });
-        }
-      });
+      if (!canRegister) return;
+
+      // 1. 组装 items 列表
+      const items = Object.entries(itemStates)
+        .filter(([_, st]) => st.count > 0 || st.checked)
+        .map(([name, st]) => {
+          const ing = ING_MAP[name];
+          return ing.units?.length
+            ? {
+                name,
+                quantity: Number(st.count),
+                unit: st.unit || ing.standard_unit.trim(),
+              }
+            : { name, unit: "arb" };
+        });
+
+      // 2. 如果没有有效食材，直接返回
+      if (items.length === 0) {
+        showToast("食材を入力してください");
+        return;
+      }
+
+      // 3. 调用库存注册 API
       try {
-        await registerInventory(payload);
-        showToast("登録しました！\n次に「食材を選択」のタブから\n料理に使う食材を選んでね");
-      } catch {
+        await registerInventory(items); // ✅ 由 useInventory 处理 URL + lineId
+        showToast(
+          "登録しました！\n次に「食材を選択」のタブから\n料理に使う食材を選んでね"
+        );
+      } catch (error) {
+        console.error("登録エラー:", error);
         showToast("登録に失敗しました");
       } finally {
+        // 4. 重置状态
         setItemStates({});
         setResetKey((k) => k + 1);
       }
       return;
     }
+  };
 
-    if (!canCook || !userId) return;
+  const handleCook = async () => {
+    if (!canCook) return;
 
     const required = inventory.filter((it) => useMap[it.name]);
     const available = inventory.filter((it) => !useMap[it.name]);
 
     try {
       await sendRecommendation({
-        user_id: userId,
         time: cookingTime,
         required_ingredients: required,
         available_ingredients: available,
@@ -159,7 +165,7 @@ export default function MainPage() {
               refs={refs}
               scrollableRef={scrollableRef}
               onSearchResult={handleSearchResult}
-              onSubmit={handleSubmit}
+              onSubmit={handleUpdate}
               canRegister={canRegister}
             />
           )}
@@ -174,7 +180,7 @@ export default function MainPage() {
               isInfoVisible={isInfoVisible}
               setIsInfoVisible={setIsInfoVisible}
               canCook={canCook}
-              onSubmit={handleSubmit}
+              onSubmit={handleCook}
             />
           )}
         </div>
