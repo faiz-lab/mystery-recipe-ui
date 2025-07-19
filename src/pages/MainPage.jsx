@@ -1,6 +1,10 @@
 // MainPage.jsx
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import axios from "axios";
+import {
+  getInventory,
+  updateInventory,
+  requestRecipeRecommendation,
+} from "@/services/api";
 
 import Header from "@/components/Header";
 import TopPageTabs from "@/components/TopPageTabs";
@@ -68,7 +72,7 @@ export default function MainPage() {
     if (page !== "select" || !userId) return;
     (async () => {
       try {
-        const { data } = await axios.get(`/ingredients?user_id=${encodeURIComponent(userId)}`);
+        const { data } = await getInventory(userId);
         setInventory(data.filter((d) => d.amount > 0));
         setUseMap({});
       } catch {
@@ -114,7 +118,7 @@ export default function MainPage() {
         }
       });
       try {
-        await axios.post("/registration_submit", payload);
+        await updateInventory(payload);
         showToast("登録しました！\n次に「食材を選択」のタブから\n料理に使う食材を選んでね");
       } catch {
         showToast("登録に失敗しました");
@@ -131,7 +135,7 @@ export default function MainPage() {
     const available = inventory.filter((it) => !useMap[it.name]);
 
     try {
-      await axios.post("/selection_submit", {
+      await requestRecipeRecommendation({
         user_id: userId,
         time: cookingTime,
         required_ingredients: required,

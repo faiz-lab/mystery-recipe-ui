@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import axios from "axios";
+import { postSuggest } from "@/services/api";
 
 const ALL_CATEGORIES = [
   "野菜",
@@ -47,7 +47,7 @@ export default function SearchBar({ onResult }) {
         selectedCategories.includes(i.category)
       );
 
-      const response = await axios.post("/api/suggest", {
+      const response = await postSuggest({
         keyword: kw,
         filteredIngredients,
       });
