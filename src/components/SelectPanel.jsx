@@ -15,7 +15,8 @@ export default function SelectPanel({
   onSubmit,
 }) {
   return (
-    <>
+    <div className="space-y-6">
+      {/* ✅ 开始按钮 */}
       <div className="flex flex-col items-center gap-1">
         <Button
           disabled={!canCook}
@@ -30,9 +31,13 @@ export default function SelectPanel({
         </Button>
         <span className="text-xs text-gray-500">タップするとLINEに戻ります</span>
       </div>
+
+      {/* ✅ 料理时间选择 */}
       <CookingTimePicker cookingTime={cookingTime} setCookingTime={setCookingTime} />
+
+      {/* ✅ 标题 + 说明按钮 */}
       <div className="flex items-center gap-2">
-        <label className="font-medium">👨‍🍳料理に使う食材の選択</label>
+        <label className="font-medium text-gray-700 text-base">👨‍🍳 料理に使う食材の選択</label>
         <button
           onClick={() => setIsInfoVisible((v) => !v)}
           className="w-5 h-5 flex items-center justify-center text-xs font-semibold text-gray-600 border border-gray-400 rounded-full hover:bg-gray-100"
@@ -41,29 +46,30 @@ export default function SelectPanel({
           i
         </button>
       </div>
+
+      {/* ✅ 提示信息 */}
       {isInfoVisible && (
-        <p className="text-sm text-gray-600 mt-1 ml-1">
-          必ず使用したい食材にチェックを入れてね！<br />
-          チェックしなかった食材は、使われる場合もあれば使われない場合もあるよ。
-          たとえば、食材A・B・CのうちAのみにチェックを入れた場合、レシピは「A」「A・B」「A・C」「A・B・C」のいずれかの組み合わせでランダムに検索さるよ。<br />
-          それから、レシピが見つかりやすくなるように、目安としては10種類以上の食材を登録しておくのがおすすめだよ！
+        <p className="text-sm text-gray-600 mt-1 ml-1 leading-relaxed">
+          ✅ 必ず使用したい食材にチェックを入れてね！<br />
+          チェックしなかった食材は、使われる場合もあれば使われない場合もあるよ。<br />
+          例: A・B・C のうち A だけチェック → レシピは「A」「A・B」「A・C」「A・B・C」など。<br />
+          レシピが見つかりやすくなるために、10種類以上の登録がおすすめ！
         </p>
       )}
-      <div className="bg-white rounded-3xl p-6 shadow-md max-h-[60vh] overflow-y-auto">
-        <table className="w-full">
-          <tbody>
-            {inventory.map((it) => (
-              <InventoryRow
-                key={it.name}
-                name={it.name}
-                stock={`${it.amount}${it.unit ? ` ${it.unit}` : ""}`}
-                checked={!!useMap[it.name]}
-                onToggle={(n, c) => setUseMap({ ...useMap, [n]: c })}
-              />
-            ))}
-          </tbody>
-        </table>
+
+      {/* ✅ 食材列表卡片 */}
+      <div className="bg-white rounded-3xl p-4 shadow-md max-h-[60vh] overflow-y-auto space-y-2">
+        {inventory.map((it) => (
+          <InventoryRow
+            key={it.name}
+            name={it.name}
+            stock={it.quantity}
+            unit={it.unit}
+            checked={!!useMap[it.name]}
+            onToggle={(n, c) => setUseMap({ ...useMap, [n]: c })}
+          />
+        ))}
       </div>
-    </>
+    </div>
   );
 }

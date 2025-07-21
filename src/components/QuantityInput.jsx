@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -32,7 +30,7 @@ export default function QuantityInput({ value = 0, onChange, disabled }) {
         disabled={disabled || local === 0}
         className="h-9 w-9"
       >
-        −
+        -
       </Button>
 
       <input
@@ -51,7 +49,7 @@ export default function QuantityInput({ value = 0, onChange, disabled }) {
         disabled={disabled}
         className="h-9 w-9"
       >
-        ＋
+        +
       </Button>
     </div>
   );

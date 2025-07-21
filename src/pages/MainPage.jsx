@@ -10,6 +10,7 @@ import SelectPanel from "@/components/SelectPanel";
 import ToastMessage from "@/components/ToastMessage";
 
 import { INGREDIENTS } from "@/data/ingredients";
+import { patchInventory } from "@/services/api";
 
 const CATEGORIES = INGREDIENTS.reduce((acc, ing) => {
   (acc[ing.category] ||= []).push(ing);
@@ -24,7 +25,7 @@ window.ING_MAP = ING_MAP;
 export default function MainPage() {
   const [isInfoVisible, setIsInfoVisible] = useState(false);
   const params = new URLSearchParams(window.location.search);
-  const userId = params.get("user_id") || import.meta.env.VITE_DEFAULT_USER_ID;;
+  const userId = params.get("user_id") || import.meta.env.VITE_DEFAULT_USER_ID;
 
   const [page, setPage] = useState("register");
   const firstCat = Object.keys(CATEGORIES)[0] || "";
@@ -132,17 +133,29 @@ export default function MainPage() {
   const handleCook = async () => {
     if (!canCook) return;
 
+    // ✅ 用户勾选的必用食材
     const required = inventory.filter((it) => useMap[it.name]);
-    const available = inventory.filter((it) => !useMap[it.name]);
+    const available = inventory; // 当前用户的全部库存
 
     try {
-      await sendRecommendation({
-        time: cookingTime,
-        required_ingredients: required,
-        available_ingredients: available,
-      });
+      const payload = {
+        max_cooking_time: cookingTime, // 最大調理時間（分）
+        required_ingredients: required.map((it) => it.name), // 后端目前只接收 name
+        available_ingredients: available.map((it) => ({
+          name: it.name,
+          quantity: it.quantity || 0,
+          unit: it.unit || "",
+        })),
+      };
+
+      console.log("🔍 Sending recommendation request:", payload);
+
+      await sendRecommendation(payload);
+
+      // ✅ LINE に戻る
       window.location.replace("line://nv/chat");
-    } catch {
+    } catch (error) {
+      console.error("送信エラー:", error);
       showToast("送信に失敗しました");
     }
   };
@@ -167,6 +180,8 @@ export default function MainPage() {
               onSearchResult={handleSearchResult}
               onSubmit={handleUpdate}
               canRegister={canRegister}
+              userId={userId}
+              patchInventory={patchInventory}
             />
           )}
 

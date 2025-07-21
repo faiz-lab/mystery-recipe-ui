@@ -1,49 +1,29 @@
-// src/hooks/useInventory.js
 import { useState, useCallback } from "react";
 import {
   getInventory,
-  updateInventory,
+  patchInventory,
   requestRecipeRecommendation,
 } from "@/services/api";
 
-export default function useInventory(lineId) {
+export default function useInventory(userId) {
   const [inventory, setInventory] = useState([]);
 
   /**
    * ✅ 获取库存并更新状态
    */
   const fetchInventory = useCallback(async () => {
-    if (!lineId) return;
+    if (!userId) return;
     try {
-      const { data } = await getInventory(lineId);
-      // 过滤掉数量为 0 的项
-      setInventory(data.filter((item) => item.quantity > 0));
+      const { data } = await getInventory(userId);
+      setInventory(data.inventory || []); // ✅ 后端返回 inventory 字段
     } catch (error) {
       console.error("在庫取得エラー:", error);
       throw error;
     }
-  }, [lineId]);
-
-  /**
-   * ✅ 注册库存（更新库存）
-   * @param {Array} items - 要注册的食材 [{ name, quantity, unit }]
-   */
-  const registerInventory = useCallback(
-    async (items) => {
-      if (!lineId) throw new Error("LINE ID 不存在");
-      try {
-        await updateInventory(lineId, items);
-      } catch (error) {
-        console.error("在庫更新エラー:", error);
-        throw error;
-      }
-    },
-    [lineId]
-  );
+  }, [userId]);
 
   /**
    * ✅ 提交料理推荐请求
-   * @param {Object} payload - { time, required_ingredients, available_ingredients }
    */
   const sendRecommendation = useCallback(async (payload) => {
     try {
@@ -58,7 +38,7 @@ export default function useInventory(lineId) {
     inventory,
     setInventory,
     fetchInventory,
-    registerInventory,
+    patchInventory, // ✅ 暴露 PATCH
     sendRecommendation,
   };
 }
