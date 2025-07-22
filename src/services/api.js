@@ -15,6 +15,12 @@ axios.interceptors.response.use(
 );
 
 /**
+ * ✅ 查询食材
+ */
+export const fetchIngredients = (params) => {
+  return axios.get("/ingredients", { params });
+};
+/**
  * ✅ 搜索建议
  */
 export const postSuggest = (data) =>
