@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import MainPage from "./pages/MainPage";   // 既存コンポーネント
+import { Toaster } from "@/components/ui/sonner"
 
 export default function App() {
   /* ----- 右下のクレジット位置 (sticky ↔ bottom) ----- */
@@ -26,24 +27,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/registration" />} />
         </Routes>
       </BrowserRouter>
-
-      {/* ---- クレジット ---- */}
-      
-      {/*<footer
-        className={`text-xs text-gray-500 z-50 transition-all
-          ${atBottom ? "absolute bottom-2" : "fixed bottom-2"} right-2`}
-      >
-        Designed&nbsp;by&nbsp;
-        <a
-          href="https://www.freepik.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="underline hover:text-gray-700"
-        >
-          Freepik
-        </a>
-      </footer>*/}
-      
+      <Toaster position="top-center"></Toaster>
     </>
   );
 }
