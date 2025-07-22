@@ -3,13 +3,14 @@ export default function InventoryItemRow({
                                            quantity,
                                            unit,
                                            unitOptions,
+                                           status,
                                            onQuantityChange,
                                            onUnitChange
                                          }) {
   return (
       <div className="flex items-center justify-between border-b pb-2 w-full">
         <span className="flex-1 truncate">{name}</span>
-        <div className="flex gap-2 justify-end items-center min-w-[200px]">
+        <div className="flex gap-2 justify-end items-center min-w-[220px]">
           <button
               onClick={() => onQuantityChange(Math.max(0, quantity - 1))}
               className="w-9 h-9 border rounded text-gray-600 hover:bg-gray-100"
@@ -40,6 +41,12 @@ export default function InventoryItemRow({
                 </option>
             ))}
           </select>
+          {/* ✅ 状态显示 */}
+          <div className="w-16 text-xs text-center">
+            {status === "saving" && <span className="text-gray-400">保存中...</span>}
+            {status === "saved" && <span className="text-green-500">✓ 保存</span>}
+            {status === "error" && <span className="text-red-500">エラー</span>}
+          </div>
         </div>
       </div>
   );

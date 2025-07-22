@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import SearchBar from "@/components/SearchBar";
 import BackToTopButton from "@/components/BackToTopButton";
 import InventoryItemRow from "@/components/InventoryItemRow";
@@ -13,9 +13,8 @@ export default function RegisterPanel({
                                           onSearchResult,
                                           userId
                                       }) {
-    const [inventoryMap, setInventoryMap] = useState({}); // { "玉ねぎ": { quantity: 2, unit: "個" }, ... }
-    const [status, setStatus] = useState(""); // "saving" | "saved" | "error"
-    const pendingUpdate = useRef(false);
+    const [inventoryMap, setInventoryMap] = useState({}); // { "水": { quantity: 507, unit: "ml" }, ... }
+    const [rowStatus, setRowStatus] = useState({}); // { "水": "saving", "酒": "saved" }
 
     // ✅ 加载用户库存
     useEffect(() => {
@@ -24,9 +23,11 @@ export default function RegisterPanel({
             try {
                 const res = await getInventory(userId);
                 const map = {};
-                res.data.inventory.forEach((item) => {
-                    map[item.name] = { quantity: item.quantity, unit: item.unit };
-                });
+                if (res.data.inventory) {
+                    res.data.inventory.forEach((item) => {
+                        map[item.name] = { quantity: item.quantity, unit: item.unit };
+                    });
+                }
                 setInventoryMap(map);
             } catch (error) {
                 console.error("在庫取得エラー:", error);
@@ -35,49 +36,97 @@ export default function RegisterPanel({
         fetchInventory();
     }, [userId]);
 
-    // ✅ 更新 quantity
-    const handleQuantityChange = (name, newQuantity) => {
+    const handleQuantityChange = (name, newQuantity, defaultUnit) => {
+        const currentUnit = inventoryMap[name]?.unit || defaultUnit;
+        // 更新 state
         setInventoryMap((prev) => ({
             ...prev,
-            [name]: { ...prev[name], quantity: newQuantity }
+            [name]: { quantity: newQuantity, unit: currentUnit }
         }));
-        pendingUpdate.current = true;
+
+        let updateItem = [];
+        let removeItem = [];
+
+        if (newQuantity > 0) {
+            updateItem = [{ name, quantity: newQuantity, unit: currentUnit }];
+        } else {
+            removeItem = [name]; // ✅ 当数量=0，放到 remove 数组
+        }
+
+        console.log("📤 PATCH Payload:", { update: updateItem, remove: removeItem });
+
+        setRowStatus((prev) => ({ ...prev, [name]: "saving" }));
+
+        patchInventory(userId, updateItem, removeItem)
+            .then(() => {
+                setRowStatus((prev) => ({ ...prev, [name]: "saved" }));
+                setTimeout(() => {
+                    setRowStatus((prev) => ({ ...prev, [name]: "" }));
+                }, 2000);
+            })
+            .catch(() => {
+                setRowStatus((prev) => ({ ...prev, [name]: "error" }));
+            });
     };
 
-    // ✅ 更新 unit
     const handleUnitChange = (name, newUnit) => {
+        const currentQuantity = inventoryMap[name]?.quantity || 0;
+
         setInventoryMap((prev) => ({
             ...prev,
-            [name]: { ...prev[name], unit: newUnit }
+            [name]: { quantity: currentQuantity, unit: newUnit }
         }));
-        pendingUpdate.current = true;
+
+        const updateItem = [{ name, quantity: currentQuantity, unit: newUnit }];
+
+        setRowStatus((prev) => ({ ...prev, [name]: "saving" }));
+
+        patchInventory(userId, updateItem, [])
+            .then(() => {
+                setRowStatus((prev) => ({ ...prev, [name]: "saved" }));
+                setTimeout(() => {
+                    setRowStatus((prev) => ({ ...prev, [name]: "" }));
+                }, 2000);
+            })
+            .catch(() => {
+                setRowStatus((prev) => ({ ...prev, [name]: "error" }));
+            });
     };
 
-    // ✅ 防抖 PATCH
-    useDebouncedEffect(
-        () => {
-            if (!pendingUpdate.current) return;
-            if (!userId) return;
 
-            const payload = Object.entries(inventoryMap)
-                .filter(([_, val]) => val.quantity > 0) // 排除数量为 0 的
-                .map(([name, val]) => ({
-                    name,
-                    quantity: val.quantity,
-                    unit: val.unit
-                }));
+    // ✅ 防抖 PATCH (全量提交，但显示逐行状态)
+    useDebouncedEffect(() => {
+        if (!userId) return;
 
-            setStatus("saving");
-            patchInventory(userId, payload)
-                .then(() => {
-                    setStatus("saved");
-                    pendingUpdate.current = false;
-                })
-                .catch(() => setStatus("error"));
-        },
-        [inventoryMap],
-        800 // 0.8秒防抖
-    );
+        const payload = Object.entries(inventoryMap)
+            .filter(([_, val]) => val.quantity > 0)
+            .map(([name, val]) => ({
+                name,
+                quantity: val.quantity,
+                unit: val.unit
+            }));
+
+        if (payload.length === 0) return;
+
+        patchInventory(userId, payload)
+            .then(() => {
+                // ✅ 所有食材状态更新为 saved
+                payload.forEach((item) => {
+                    setRowStatus((prev) => ({ ...prev, [item.name]: "saved" }));
+                });
+                // ✅ 2秒后隐藏
+                setTimeout(() => {
+                    payload.forEach((item) => {
+                        setRowStatus((prev) => ({ ...prev, [item.name]: "" }));
+                    });
+                }, 2000);
+            })
+            .catch(() => {
+                payload.forEach((item) => {
+                    setRowStatus((prev) => ({ ...prev, [item.name]: "error" }));
+                });
+            });
+    }, [inventoryMap], 800);
 
     return (
         <>
@@ -114,7 +163,8 @@ export default function RegisterPanel({
                             quantity={inventoryMap[ing.name]?.quantity || 0}
                             unit={inventoryMap[ing.name]?.unit || ing.standard_unit}
                             unitOptions={ing.units.map((u) => u.unit)}
-                            onQuantityChange={(val) => handleQuantityChange(ing.name, val)}
+                            status={rowStatus[ing.name] || ""}
+                            onQuantityChange={(val) => handleQuantityChange(ing.name, val, ing.standard_unit)}
                             onUnitChange={(val) => handleUnitChange(ing.name, val)}
                         />
                     ))
@@ -124,13 +174,6 @@ export default function RegisterPanel({
                     </p>
                 )}
                 <BackToTopButton targetRef={scrollableRef} />
-            </div>
-
-            {/* ✅ 状态显示 */}
-            <div className="text-center mt-2 text-sm">
-                {status === "saving" && <span className="text-gray-400">保存中...</span>}
-                {status === "saved" && <span className="text-green-500">✓ 保存</span>}
-                {status === "error" && <span className="text-red-500">エラー</span>}
             </div>
         </>
     );
