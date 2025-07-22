@@ -20,11 +20,6 @@ axios.interceptors.response.use(
 export const fetchIngredients = (params) => {
   return axios.get("/ingredients", { params });
 };
-/**
- * ✅ 搜索建议
- */
-export const postSuggest = (data) =>
-  axios.post("/api/suggest", data);
 
 /**
  * ✅ 获取用户库存

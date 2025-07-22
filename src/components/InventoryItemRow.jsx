@@ -7,7 +7,6 @@ export default function InventoryItemRow({
     unitOptions,
     onQuantityChange,
     onUnitChange,
-    status,
     highlightKeyword
 }) {
     const getHighlightedName = () => {
