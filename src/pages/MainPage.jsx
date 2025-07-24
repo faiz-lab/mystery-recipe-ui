@@ -18,7 +18,7 @@ export default function MainPage() {
   const [itemStates, setItemStates] = useState({});
   const [resetKey, setResetKey] = useState(0);
 
-  const { inventory, fetchInventory, registerInventory, sendRecommendation } =
+  const { inventory, fetchInventory, sendRecommendation } =
     useInventory(userId);
 
   const [useMap, setUseMap] = useState({});
@@ -53,39 +53,6 @@ export default function MainPage() {
 
   const canCook = useMemo(() => Object.values(useMap).some(Boolean), [useMap]);
 
-  const handleUpdate = async () => {
-    if (page === "register") {
-      if (!canRegister) return;
-
-      const items = Object.entries(itemStates)
-        .filter(([_, st]) => st.count > 0 || st.checked)
-        .map(([name, st]) => ({
-          name,
-          quantity: Number(st.count) || 0,
-          unit: st.unit || "g",
-        }));
-
-      if (items.length === 0) {
-        showToast("食材を入力してください");
-        return;
-      }
-
-      try {
-        await registerInventory(items);
-        showToast(
-          "登録しました！\n次に「食材を選択」のタブから\n料理に使う食材を選んでね"
-        );
-      } catch (error) {
-        console.error("登録エラー:", error);
-        showToast("登録に失敗しました");
-      } finally {
-        setItemStates({});
-        setResetKey((k) => k + 1);
-      }
-      return;
-    }
-  };
-
   const handleCook = async () => {
     if (!canCook) return;
 
@@ -95,14 +62,21 @@ export default function MainPage() {
           name: it.name,
           amount: it.quantity
         }));
-    const available = inventory; // 当前用户的全部库存
 
     try {
       await sendRecommendation({
         max_cooking_time: cookingTime,
         required_ingredients: required,
-        available_ingredients: available,
+        available_ingredients: inventory,
       });
+      // ✅ 新增：通知 LINE Bot 推送 "登録完了"
+      await fetch(`${import.meta.env.VITE_API_BASE_URL}/line/notify`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: userId, message: "登録完了" })
+      });
+
+      // ✅ LINE 聊天页面跳转
       window.location.replace("line://nv/chat");
     } catch {
       showToast("送信に失敗しました");
@@ -123,7 +97,6 @@ export default function MainPage() {
               resetKey={resetKey}
               refs={refs}
               scrollableRef={scrollableRef}
-              onSubmit={handleUpdate}
               canRegister={canRegister}
             />
           )}
