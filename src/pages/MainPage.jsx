@@ -13,7 +13,6 @@ export default function MainPage() {
   const [isInfoVisible, setIsInfoVisible] = useState(false);
   const params = new URLSearchParams(window.location.search);
   const userId = params.get("user_id") || import.meta.env.VITE_DEFAULT_USER_ID;
-
   const [page, setPage] = useState("register");
   const refs = useRef({});
   const [itemStates, setItemStates] = useState({});
@@ -91,8 +90,11 @@ export default function MainPage() {
     if (!canCook) return;
 
     const required = inventory
-      .filter((it) => useMap[it.name])
-      .map((it) => it.name); // ✅ 只要名字
+        .filter((it) => useMap[it.name])
+        .map((it) => ({
+          name: it.name,
+          amount: it.quantity
+        }));
     const available = inventory; // 当前用户的全部库存
 
     try {
@@ -115,6 +117,7 @@ export default function MainPage() {
           <TopPageTabs active={page} setActive={setPage} />
           {page === "register" && (
             <RegisterPanel
+                userId={userId}
               itemStates={itemStates}
               setItemStates={setItemStates}
               resetKey={resetKey}
