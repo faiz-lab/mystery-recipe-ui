@@ -65,6 +65,7 @@ export default function MainPage() {
 
     try {
       await sendRecommendation({
+        user_id: userId,
         max_cooking_time: cookingTime,
         required_ingredients: required,
         available_ingredients: inventory,
