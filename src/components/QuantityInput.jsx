@@ -22,7 +22,7 @@ export default function QuantityInput({ value = 0, onChange, disabled }) {
   };
 
   return (
-    <div className="flex items-center gap-1 h-9">
+    <div className="flex items-center gap-1 space-x-1 h-9">
       <Button
         size="icon"
         variant="secondary"

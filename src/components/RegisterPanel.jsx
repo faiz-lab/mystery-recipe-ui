@@ -118,7 +118,7 @@ export default function RegisterPanel({ userId }) {
       <SearchBar keyword={keyword} onKeywordChange={setKeyword} />
 
       {/* Tabs */}
-      <div className="flex gap-2 overflow-x-auto pb-2">
+      <div className="flex gap-2 space-x-2 overflow-x-auto pb-2">
         {Object.keys(filteredCategories).map((cat) => (
           <button
             key={cat}

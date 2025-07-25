@@ -5,7 +5,7 @@ export default function InventoryRow({ name, stock, unit, checked, onToggle, onD
   return (
     <div className="flex items-center justify-between py-3 px-2 border-b last:border-none hover:bg-orange-50 transition rounded-lg">
       {/* 左：复选框 + 食材名 */}
-      <label className="flex items-center gap-3 cursor-pointer">
+      <label className="flex items-center gap-3 space-x-3 cursor-pointer">
         <input
           type="checkbox"
           checked={checked}
@@ -16,7 +16,7 @@ export default function InventoryRow({ name, stock, unit, checked, onToggle, onD
       </label>
 
       {/* 右：库存 + 删除按钮 */}
-      <div className="flex items-center gap-3 flex-shrink-0">
+      <div className="flex items-center gap-3 space-x-3 flex-shrink-0">
         <div className="text-gray-700 font-semibold">
           {stock}
           <span className="ml-1 text-gray-500">{unit}</span>

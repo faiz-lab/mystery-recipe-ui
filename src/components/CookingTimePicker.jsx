@@ -4,7 +4,7 @@ export default function CookingTimePicker({ cookingTime, setCookingTime }) {
   const times = Array.from({ length: 12 }, (_, i) => (i + 1) * 5); // 5‑minute increments from 5 to 60
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2 space-y-2">
       <label className="font-medium">⏰ 料理時間</label>
       <select
         size={4}                       

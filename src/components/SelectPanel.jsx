@@ -52,7 +52,7 @@ export default function SelectPanel({
       {" "}
       <div className="space-y-6">
         {/* ✅ 开始按钮 */}
-        <div className="flex flex-col items-center gap-1">
+        <div className="flex flex-col items-center gap-1 space-y-1">
           <Button
             disabled={!canCook}
             onClick={onSubmit}
@@ -76,7 +76,7 @@ export default function SelectPanel({
         />
 
         {/* ✅ 标题 + 说明按钮 */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 space-x-2">
           <label className="font-medium text-gray-700 text-base">
             👨‍🍳 料理に使う食材の選択
           </label>
