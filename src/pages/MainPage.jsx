@@ -29,7 +29,7 @@ export default function MainPage() {
 
   const showToast = (msg) => {
     setToast(msg);
-    setTimeout(() => setToast(""), 3000);
+    setTimeout(() => setToast(""), 4000);
   };
 
   useEffect(() => {
@@ -70,17 +70,11 @@ export default function MainPage() {
         required_ingredients: required,
         available_ingredients: inventory,
       });
-      // ✅ 新增：通知 LINE Bot 推送 "登録完了"
-      await fetch(`${import.meta.env.VITE_API_BASE_URL}/line/notify`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: userId, message: "登録完了" })
-      });
-
       // ✅ LINE 聊天页面跳转
       window.location.replace("line://nv/chat");
+      showToast("🍳 料理を開始しました！LINEに戻ると、次の手順をご案内します。ブラウザは閉じてOKです！\n");
     } catch {
-      showToast("送信に失敗しました");
+      showToast("おすすめできるレシピが見つかりませんでした。");
     }
   };
 
